@@ -1,13 +1,18 @@
 const { app, BrowserWindow } = require('electron')
-const { ipcMain } = require('electron')
+const path = require('path')
 
 function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+    },
   })
 
-  win.loadFile('./template/index.html')
+  win.loadFile('./dist/index.html')
 }
 
 app.whenReady().then(() => {
@@ -24,8 +29,4 @@ app.whenReady().then(() => {
       app.quit()
     }
   })
-})
-
-ipcMain.handle('call-action', (event, ...args) => {
-  console.log('event', event)
 })
