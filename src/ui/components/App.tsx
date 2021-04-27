@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react'
-import { requestHttp } from '../../service/ipc'
 
 const App = () => {
   useEffect(() => {
-    requestHttp().then(() => {
-      console.log('ok')
+    window.dockerApi.invoke("My test arguments.").then((res) => {
+      console.log(res)
     })
   }, [])
   return (

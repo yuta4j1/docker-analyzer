@@ -1,4 +1,6 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
+import net from 'net'
+import http from 'http'
 const path = require('path')
 
 function createWindow() {
@@ -29,4 +31,33 @@ app.whenReady().then(() => {
       app.quit()
     }
   })
+})
+
+// Main process
+ipcMain.handle('request', async (event, someArgument) => {
+  // console.log('event', event)
+  console.log('someArgument', someArgument)
+
+  const clientRequest = http.request(
+    {
+      socketPath: '/var/run/docker.sock',
+      path: '/v1.40/containers/json?all=true',
+    },
+    (res) => {
+      console.log('statuscode', res.statusCode)
+      res.setEncoding('utf8')
+
+      res.on('data', (data) => {
+        try {
+          const parsed = JSON.parse(data)
+          console.log(parsed)
+        } catch (err) {
+          console.error(err)
+        }
+      })
+      // res.on('error', (err) => console.error(err))
+    }
+  )
+  clientRequest.end()
+  return 'ok'
 })
