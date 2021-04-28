@@ -2,8 +2,8 @@ import React, { useEffect } from 'react'
 
 const App = () => {
   useEffect(() => {
-    window.dockerApi.invoke("My test arguments.").then((res) => {
-      console.log(res)
+    window.dockerApi.invoke('My test arguments.').then((res) => {
+      console.log('res', res)
     })
   }, [])
   return (

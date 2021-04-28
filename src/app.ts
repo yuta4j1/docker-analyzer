@@ -33,31 +33,40 @@ app.whenReady().then(() => {
   })
 })
 
+const getRequest = async <T>(url: string): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    const clientRequest = http.request(
+      {
+        socketPath: '/var/run/docker.sock',
+        path: url,
+      },
+      (res) => {
+        res.setEncoding('utf8')
+        let chunk = ''
+        res.on('data', (data) => (chunk += data))
+
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(chunk)
+            resolve(parsed)
+          } catch (err) {
+            console.error(err)
+          }
+        })
+        res.on('error', (err) => {
+          console.error(err)
+          reject(err)
+        })
+      }
+    )
+    clientRequest.end()
+  })
+}
+
 // Main process
 ipcMain.handle('request', async (event, someArgument) => {
   // console.log('event', event)
   console.log('someArgument', someArgument)
-
-  const clientRequest = http.request(
-    {
-      socketPath: '/var/run/docker.sock',
-      path: '/v1.40/containers/json?all=true',
-    },
-    (res) => {
-      console.log('statuscode', res.statusCode)
-      res.setEncoding('utf8')
-
-      res.on('data', (data) => {
-        try {
-          const parsed = JSON.parse(data)
-          console.log(parsed)
-        } catch (err) {
-          console.error(err)
-        }
-      })
-      // res.on('error', (err) => console.error(err))
-    }
-  )
-  clientRequest.end()
-  return 'ok'
+  const res = await getRequest('/v1.40/containers/json?all=1')
+  return res
 })
