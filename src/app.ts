@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
-import net from 'net'
 import http from 'http'
+import { convertToCamelcase } from './helper/json'
 const path = require('path')
 
 function createWindow() {
@@ -48,7 +48,7 @@ const getRequest = async <T>(url: string): Promise<T> => {
         res.on('end', () => {
           try {
             const parsed = JSON.parse(chunk)
-            resolve(parsed)
+            resolve(convertToCamelcase(parsed))
           } catch (err) {
             console.error(err)
           }
