@@ -1,7 +1,7 @@
 const _path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-type BundleTarget = 'electron-main' | 'electron-preload' | 'web'
+type BundleTarget = 'electron-main' | 'electron-preload' | 'web' | 'node'
 
 const bundleTarget = (): BundleTarget => {
   switch (process.env.BUNDLE_TARGET) {
@@ -11,6 +11,8 @@ const bundleTarget = (): BundleTarget => {
       return 'electron-preload'
     case 'ui':
       return 'web'
+    case 'tool':
+      return 'node'
     default:
       return 'web'
   }
@@ -90,6 +92,22 @@ const webpackConfig = (bundleTarget: BundleTarget) => {
           }),
         ],
       }
+      case 'node':
+        return {
+          mode: 'development',
+          target: bundleTarget,
+          entry: './_tool/endpointTypedef.ts',
+          output: {
+            filename: 'endpointTypedef.js',
+            path: __dirname,
+          },
+          module: {
+            rules: [tsRule()],
+          },
+          resolve: {
+            extensions: ['.ts'],
+          },
+        }
   }
 }
 
