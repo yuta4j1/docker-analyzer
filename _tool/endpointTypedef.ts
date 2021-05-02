@@ -18,6 +18,7 @@ const getRequest = async <T>(url: string): Promise<T> => {
         res.on('end', () => {
           try {
             const parsed = JSON.parse(chunk)
+            console.log('parsed', parsed)
             resolve(convertToCamelcase(parsed))
           } catch (err) {
             console.error(err)
