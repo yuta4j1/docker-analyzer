@@ -7,6 +7,8 @@
     "build:main": "BUNDLE_TARGET=main webpack",
     "build:preload": "BUNDLE_TARGET=preload webpack",
     "build:ui": "BUNDLE_TARGET=ui webpack",
+    "build:tool": "BUNDLE_TARGET=tool webpack",
+    "type-gen": "node endpointTypedef.js",
     "start": "electron .",
     "test": "jest"
   },
@@ -29,6 +31,7 @@
     "ts-jest": "^26.5.5",
     "ts-loader": "^9.1.1",
     "ts-node": "^9.1.1",
+    "typedef-gen": "^1.0.4",
     "typescript": "^4.2.4",
     "webpack": "^5.35.1",
     "webpack-cli": "^4.6.0"
