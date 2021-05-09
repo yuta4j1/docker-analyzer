@@ -1,4 +1,4 @@
-export type Ports = {
+export type Port = {
   iP: string
   privatePort: number
   publicPort: number
@@ -33,7 +33,7 @@ export type NetworkSettings = {
   networks: Networks
 }
 
-export type Mounts = {
+export type Mount = {
   type: string
   source: string
   destination: string
@@ -49,11 +49,11 @@ export type DockerContainer = {
   imageID: string
   command: string
   created: number
-  ports: Ports[]
+  ports: Port[]
   labels: Labels
   state: string
   status: string
   hostConfig: HostConfig
   networkSettings: NetworkSettings
-  mounts: Mounts[]
+  mounts: Mount[]
 }
