@@ -2,7 +2,11 @@ const _path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-type BundleTarget = 'electron-main' | 'electron-preload' | 'web' | 'node'
+type BundleTarget =
+  | 'electron-main'
+  | 'electron-preload'
+  | 'electron-renderer'
+  | 'node'
 
 const bundleTarget = (): BundleTarget => {
   switch (process.env.BUNDLE_TARGET) {
@@ -11,11 +15,11 @@ const bundleTarget = (): BundleTarget => {
     case 'preload':
       return 'electron-preload'
     case 'ui':
-      return 'web'
+      return 'electron-renderer'
     case 'tool':
       return 'node'
     default:
-      return 'web'
+      return 'electron-renderer'
   }
 }
 
@@ -71,7 +75,7 @@ const webpackConfig = (bundleTarget: BundleTarget) => {
           extensions: ['.ts'],
         },
       }
-    case 'web':
+    case 'electron-renderer':
       return {
         mode: 'development',
         target: bundleTarget,
