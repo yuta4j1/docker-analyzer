@@ -24,13 +24,23 @@ export const convertToCamelcase = (data: any): any | null => {
 }
 
 const stringConvertToCamelcase = (str: string): string => {
+  let isDelim = false
   return str
     .split('')
     .map((v, i) => {
+      if (v === '_' || v === '-') {
+        isDelim = true
+        return ''
+      }
       if (i === 0) {
         return v.toLocaleLowerCase()
       } else {
-        return v
+        if (isDelim) {
+          isDelim = false
+          return v.toLocaleUpperCase()
+        } else {
+          return v
+        }
       }
     })
     .join('')
