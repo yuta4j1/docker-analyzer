@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('dockerApi', {
-  invoke: (test: string): Promise<any> => ipcRenderer.invoke('request', test),
+  invoke: (reqParam: { url: string }): Promise<any> =>
+    ipcRenderer.invoke('api-request', reqParam),
 })
