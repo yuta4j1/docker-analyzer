@@ -23,7 +23,19 @@ type PrecpuStats = {
   cpuUsage: CpuUsage
   throttlingData: ThrottlingData
 }
-type MemoryStats = {}
+type MemoryStats = {
+  stats: {
+    cache: number
+    pgpgout: number
+    rss: number
+    totalMappedFile: number
+    totalCache: number
+  }
+  maxUsage: number
+  usage: number
+  failcnt: number
+  limit: number
+}
 
 export type ContainerStats = {
   id: string

@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react'
-import LineChart from './line-chart'
 import ContainerInfo from './container-info'
+import Utilizations from './utilizations'
 import { DockerContainer } from '../../types/docker'
 
 const App = () => {
@@ -10,8 +10,8 @@ const App = () => {
     let unmounted = false
     ;(async () => {
       window.dockerApi
-        .invoke('My test arguments.')
-        .then((cnts: DockerContainer[]) => {
+        .invoke<DockerContainer[]>({ url: 'containers/json?all=1' })
+        .then((cnts) => {
           if (cnts && cnts.length > 0) {
             if (!unmounted) {
               setContainers(cnts)
@@ -24,11 +24,10 @@ const App = () => {
       unmounted = true
     }
   }, [])
+
   return (
     <div>
-      <div>
-        <LineChart />
-      </div>
+      <Utilizations />
       <div>
         {containers &&
           containers.length > 0 &&

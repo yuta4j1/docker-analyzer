@@ -1,12 +1,15 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
+// import installExtension, {
+//   REACT_DEVELOPER_TOOLS,
+// } from 'electron-devtools-installer'
 import http from 'http'
 import { convertToCamelcase } from './helper/json'
 const path = require('path')
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -18,6 +21,10 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // installExtension(REACT_DEVELOPER_TOOLS)
+  //   .then((name) => console.log(`Added Extension:  ${name}`))
+  //   .catch((err) => console.log('An error occurred: ', err))
+
   createWindow()
 
   app.on('activate', () => {
@@ -64,9 +71,7 @@ const getRequest = async <T>(url: string): Promise<T> => {
 }
 
 // Main process
-ipcMain.handle('request', async (event, someArgument) => {
-  // console.log('event', event)
-  console.log('someArgument', someArgument)
-  const res = await getRequest('/v1.40/containers/json?all=1')
+ipcMain.handle('api-request', async (event, arg) => {
+  const res = await getRequest(`/v1.40/${arg.url}`)
   return res
 })
