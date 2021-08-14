@@ -1,61 +1,69 @@
 import React, { useState } from 'react'
-import { css } from '@linaria/core'
+import { styled } from '@linaria/react'
+import Title from '../common/Title'
+import ContainerInfoRow from './ContainerInfoRow'
 import { DockerContainer, Port } from '../../../types/docker'
 
-const wrapper = css`
-  width: 44rem;
+const Table = styled.div`
+  border: 0.5px solid #4c4e52;
+  border-radius: 8px;
 `
 
-const containerInfoRow = css`
+const TableHeader = styled.div`
   display: flex;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 300;
-  margin: 0 0 1rem 0;
-  cursor: pointer;
+  align-items: center;
+  height: 2.4rem;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 0.5px solid #4c4e52;
+  background-color: #343639;
+  font-size: 0.8rem;
+  padding: 0 1rem;
 `
 
-const longItem = css`
+const TableContent = styled.div`
+  height: 20rem;
+  overflow-y: scroll;
+`
+
+const LongItem = styled.div`
   margin: 0 1rem 0 0;
   width: 15rem;
+  color: #9f9f9f;
 `
 
-const item = css`
+const Item = styled.div`
   margin: 0 1rem 0 0;
   width: 10rem;
+  color: #9f9f9f;
+`
+const ShortItem = styled.div`
+  margin: 0 1rem 0 0;
+  width: 2rem;
 `
 
-const containerPortString = (ports: Port[]): string => {
-  if (ports.length > 0) {
-    return `${ports[0].publicPort || '-'} -> ${ports[0].privatePort || '-'}`
-  } else {
-    return '-'
-  }
-}
-
-const ContainerInfo: React.VFC<{ container: DockerContainer }> = ({
-  container,
+const ContainerInfo: React.VFC<{ containers: DockerContainer[] }> = ({
+  containers,
 }) => {
-  console.log('container info', container)
-  const [showDetail, setShowDetail] = useState<boolean>(false)
+  console.log('container info list', containers)
+
   return (
-    <div className={wrapper}>
-      <div
-        className={containerInfoRow}
-        onClick={() => {
-          setShowDetail(!showDetail)
-        }}
-      >
-        <div className={longItem}>{container.names[0].replace('/', '')}</div>
-        <div className={item}>{containerPortString(container.ports)}</div>
-        <div className={longItem}>{container.image}</div>
-        <div className={item}>{container.status}</div>
-      </div>
-      {showDetail && (
-        <div>
-          <div className={item}>id: {container.id}</div>
-        </div>
-      )}
+    <div>
+      <Title title="Container" />
+      <Table>
+        <TableHeader>
+          <ShortItem />
+          <LongItem>Name / ID</LongItem>
+          <Item>Status</Item>
+          <Item>Port</Item>
+          <LongItem>Image</LongItem>
+          <ShortItem />
+        </TableHeader>
+        <TableContent>
+          {containers.map((v, i) => (
+            <ContainerInfoRow key={i} container={v} />
+          ))}
+        </TableContent>
+      </Table>
     </div>
   )
 }

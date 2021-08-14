@@ -1,28 +1,24 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react'
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import { css } from '@linaria/core'
-import LineChart from '../line-chart'
-import { getCurrentHourMinute } from '../../../lib/dateTime'
+import Title from '../common/Title'
+import { Doughnut } from 'react-chartjs-2'
 import type { DockerContainer } from '../../../types/docker/container'
 import type { ContainerStats } from '../../../types/docker/stats'
 
-const flexContainer = css`
-  display: flex;
+const wrapper = css`
+  width: 18rem;
 `
 
-type MemoryUsagePerMinute = {
-  minutes: string[]
+type ContainerMemoryUsage = {
   containerName: string
-  usage: number[]
-}
-
-type ContainerMemoryUsagePerMinute = {
-  [key: string]: MemoryUsagePerMinute
+  usage: number
 }
 
 type ChartDatasets = {
-  label: string
+  label?: string
   data: number[]
-  borderColor: string
+  backgroundColor: string[]
+  borderColor: string[]
 }
 
 type ChartData = {
@@ -39,83 +35,75 @@ const computeMemoryUsage = (stats: ContainerStats): number => {
 }
 
 const Utilizations = () => {
-  const [
-    containerMemoryUsages,
-    setContainerMemoryUsages,
-  ] = useState<ContainerMemoryUsagePerMinute | null>(null)
+  const [containerMemoryUsages, setContainerMemoryUsages] = useState<
+    ContainerMemoryUsage[] | null
+  >(null)
+
   const createChartData = (): ChartDatasets[] => {
     if (!containerMemoryUsages) {
       return []
     }
-    return Object.keys(containerMemoryUsages).map((v, i) => {
-      const label = containerMemoryUsages[v].containerName
-      const data = containerMemoryUsages[v].usage
-      return {
-        label,
-        data,
-        borderColor: COLORS[i],
+
+    let datas = []
+    let backgroundColors = []
+    let borderColors = []
+    for (let i in containerMemoryUsages) {
+      if (containerMemoryUsages[i].containerName === 'unused') {
+        const UNUSED_COLOR = '#4a4a4a'
+        datas.push(containerMemoryUsages[i].usage)
+        backgroundColors.push(UNUSED_COLOR)
+        borderColors.push(UNUSED_COLOR)
+      } else {
+        datas.push(containerMemoryUsages[i].usage)
+        backgroundColors.push(COLORS[i])
+        borderColors.push(COLORS[i])
       }
-    })
+    }
+    return [
+      {
+        data: datas,
+        borderColor: borderColors,
+        backgroundColor: backgroundColors,
+      },
+    ]
   }
   const createLabels = (): string[] => {
     if (!containerMemoryUsages) {
-      return []
+      return [] as string[]
     }
-    for (let k of Object.keys(containerMemoryUsages)) {
-      return containerMemoryUsages[k].minutes
-    }
+
+    return containerMemoryUsages.map((v) => v.containerName)
   }
-  const data = (): ChartData | null => {
+  const chartData = useMemo((): ChartData | null => {
     const labels = createLabels()
     const datasets = createChartData()
     if (labels.length === 0 || datasets.length === 0) {
       return null
     }
-    const len = createLabels().length
+
     return {
       labels: createLabels(),
       datasets: createChartData(),
     }
-  }
+  }, [containerMemoryUsages])
 
   const updateContainerMemoryUsages = useCallback(
     (statsArr: ContainerStats[]): void => {
-      const hourMin = getCurrentHourMinute()
-      console.log('にゃあああああ', containerMemoryUsages)
-      if (containerMemoryUsages) {
-        console.log('あれ')
-        let newMemUsages = {}
-        for (let stats of statsArr) {
-          if (containerMemoryUsages[stats.id]) {
-            newMemUsages[stats.id] = {
-              minutes: [...containerMemoryUsages[stats.id].minutes, hourMin],
-              containerName: stats.name,
-              usage: [
-                ...containerMemoryUsages[stats.id].usage,
-                computeMemoryUsage(stats),
-              ],
-            } as MemoryUsagePerMinute
-          } else {
-            newMemUsages[stats.id] = {
-              minutes: [hourMin],
-              containerName: stats.name,
-              usage: [computeMemoryUsage(stats)],
-            } as MemoryUsagePerMinute
-          }
-        }
-        setContainerMemoryUsages(newMemUsages)
-      } else {
-        console.log('あれ?????')
-        let newMemUsages = {}
-        for (let stats of statsArr) {
-          newMemUsages[stats.id] = {
-            minutes: [hourMin],
-            containerName: stats.name,
-            usage: [computeMemoryUsage(stats)],
-          } as MemoryUsagePerMinute
-        }
-        setContainerMemoryUsages(newMemUsages)
-      }
+      let usedContainerUsage = statsArr.map((v) => ({
+        containerName: v.name.replace('/', ''),
+        usage: computeMemoryUsage(v),
+      }))
+      usedContainerUsage.sort((a, b) => {
+        return b.usage - a.usage
+      })
+      let usedUsage = usedContainerUsage.reduce((acc, curr) => {
+        return acc + curr.usage
+      }, 0)
+      const unusedUsage = 100 - usedUsage
+      setContainerMemoryUsages([
+        ...usedContainerUsage,
+        { containerName: 'unused', usage: unusedUsage },
+      ])
     },
     [containerMemoryUsages]
   )
@@ -136,17 +124,28 @@ const Utilizations = () => {
     }
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     fetchDatas()
-    const intervalId = setInterval(fetchDatas, 6000)
+    const intervalId = setInterval(fetchDatas, 10000)
 
     return () => {
       clearInterval(intervalId)
     }
-  }, [fetchDatas])
+  }, [])
+
   return (
-    <div className={flexContainer}>
-      {data() !== null && <LineChart chartData={data()} />}
+    <div className={wrapper}>
+      <Title title="CPU Usage" />
+      {chartData !== null && (
+        <Doughnut
+          type={'doughnut'}
+          width={480}
+          height={480}
+          data={chartData}
+          options={{ animation: false }}
+          redraw
+        />
+      )}
     </div>
   )
 }

@@ -1,7 +1,22 @@
 import React, { useLayoutEffect, useState } from 'react'
+import { styled } from '@linaria/react'
 import ContainerInfo from './container-info'
 import Utilizations from './utilizations'
+import SideBar from './SideBar'
+import Spacer from './common/Spacer'
 import { DockerContainer } from '../../types/docker'
+
+const ContentWrapper = styled.div`
+  display: flex;
+`
+
+const UtilizationWrapper = styled.div`
+  margin-left: 4rem;
+`
+
+const ContainerInfoWrapper = styled.div`
+  margin-left: 4rem;
+`
 
 const App = () => {
   const [containers, setContainers] = useState<DockerContainer[]>([])
@@ -26,14 +41,20 @@ const App = () => {
   }, [])
 
   return (
-    <div>
-      <Utilizations />
+    <ContentWrapper>
+      <SideBar />
       <div>
-        {containers &&
-          containers.length > 0 &&
-          containers.map((v, i) => <ContainerInfo key={v.id} container={v} />)}
+        <UtilizationWrapper>
+          <Utilizations />
+        </UtilizationWrapper>
+        <Spacer space={24} />
+        <ContainerInfoWrapper>
+          {containers && containers.length > 0 && (
+            <ContainerInfo {...{ containers }} />
+          )}
+        </ContainerInfoWrapper>
       </div>
-    </div>
+    </ContentWrapper>
   )
 }
 

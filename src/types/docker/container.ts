@@ -57,3 +57,5 @@ export type DockerContainer = {
   networkSettings: NetworkSettings
   mounts: Mount[]
 }
+
+export type ContainerStatus = 'up' | 'exited' | 'unknown'

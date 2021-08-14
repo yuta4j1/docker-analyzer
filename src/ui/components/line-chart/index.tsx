@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { Line } from 'react-chartjs-2'
 
 type ContainerMemoryUsagePerMinute = {
@@ -20,6 +20,7 @@ type ChartData = {
 const LineChart: React.VFC<{
   chartData: ChartData
 }> = ({ chartData }) => {
+  const chartRef = useRef(null)
   // const createChartData = (): ChartDatasets[] => {
   //   return Object.keys(containerMemoryUsages).map((v) => {
   //     const label = containerMemoryUsages[v].containerName
@@ -45,11 +46,12 @@ const LineChart: React.VFC<{
     <div>
       <Line
         id={'10321'}
+        ref={chartRef}
         width={480}
         height={240}
         type={'line'}
         data={chartData}
-        options={{ maintainAspectRatio: false }}
+        options={{ maintainAspectRatio: false, animation: false }}
         redraw
       />
     </div>
