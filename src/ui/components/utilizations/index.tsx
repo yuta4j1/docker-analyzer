@@ -89,19 +89,19 @@ const Utilizations = () => {
 
   const updateContainerMemoryUsages = useCallback(
     (statsArr: ContainerStats[]): void => {
-      let usedContainerUsage = statsArr.map((v) => ({
+      let usedMemoryUsage = statsArr.map((v) => ({
         containerName: v.name.replace('/', ''),
         usage: computeMemoryUsage(v),
       }))
-      usedContainerUsage.sort((a, b) => {
+      usedMemoryUsage.sort((a, b) => {
         return b.usage - a.usage
       })
-      let usedUsage = usedContainerUsage.reduce((acc, curr) => {
+      let usedUsage = usedMemoryUsage.reduce((acc, curr) => {
         return acc + curr.usage
       }, 0)
       const unusedUsage = 100 - usedUsage
       setContainerMemoryUsages([
-        ...usedContainerUsage,
+        ...usedMemoryUsage,
         { containerName: 'unused', usage: unusedUsage },
       ])
     },
