@@ -109,13 +109,13 @@ const Utilizations = () => {
   )
 
   const fetchDatas = async () => {
-    const activeContainers = await window.dockerApi.invoke<DockerContainer[]>({
+    const activeContainers = await window.dockerApi.get<DockerContainer[]>({
       url: 'containers/json',
     })
     if (activeContainers && activeContainers.length > 0) {
       const containerStats = await Promise.all(
         activeContainers.map((v) =>
-          window.dockerApi.invoke<ContainerStats>({
+          window.dockerApi.get<ContainerStats>({
             url: `containers/${v.id}/stats?stream=0`,
           })
         )

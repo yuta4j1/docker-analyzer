@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { styled } from '@linaria/react'
 import Title from '../common/Title'
 import ContainerInfoRow from './ContainerInfoRow'
-import { DockerContainer, Port } from '../../../types/docker'
+import { useContainerList } from '../../../hooks/container'
 
 const Table = styled.div`
   border: 0.5px solid #4c4e52;
@@ -41,9 +41,8 @@ const ShortItem = styled.div`
   width: 2rem;
 `
 
-const ContainerInfo: React.VFC<{ containers: DockerContainer[] }> = ({
-  containers,
-}) => {
+const ContainerInfo: React.VFC<{}> = ({}) => {
+  const { data: containers, isLoading, error, mutate } = useContainerList()
   console.log('container info list', containers)
 
   return (
@@ -59,8 +58,14 @@ const ContainerInfo: React.VFC<{ containers: DockerContainer[] }> = ({
           <ShortItem />
         </TableHeader>
         <TableContent>
-          {containers.map((v, i) => (
-            <ContainerInfoRow key={i} container={v} />
+          {isLoading && <p>データを取得してます...</p>}
+          {error && <p>データの取得に失敗しました</p>}
+          {containers?.map((v, i) => (
+            <ContainerInfoRow
+              key={i}
+              container={v}
+              mutateContainerList={mutate}
+            />
           ))}
         </TableContent>
       </Table>

@@ -44,6 +44,7 @@ const getRequest = async <T>(url: string): Promise<T> => {
   return new Promise<T>((resolve, reject) => {
     const clientRequest = http.request(
       {
+        method: 'GET',
         socketPath: '/var/run/docker.sock',
         path: url,
       },
@@ -70,8 +71,51 @@ const getRequest = async <T>(url: string): Promise<T> => {
   })
 }
 
+const postRequest = async (url: string): Promise<any> => {
+  return new Promise<any>((resolve, reject) => {
+    const clientRequest = http.request(
+      {
+        method: 'POST',
+        socketPath: '/var/run/docker.sock',
+        path: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+      (res) => {
+        res.setEncoding('utf8')
+        let chunk = ''
+        res.on('data', (data) => (chunk += data))
+
+        res.on('end', () => {
+          try {
+            if (chunk && chunk.length > 0) {
+              const parsed = JSON.parse(chunk)
+              resolve(convertToCamelcase(parsed))
+            }
+            resolve({})
+          } catch (err) {
+            console.log('kokoka????? chunk', chunk)
+            console.error(err)
+          }
+        })
+        res.on('error', (err) => {
+          console.error(err)
+          reject(err)
+        })
+      }
+    )
+    clientRequest.end()
+  })
+}
+
 // Main process
-ipcMain.handle('api-request', async (event, arg) => {
+ipcMain.handle('api-request-get', async (event, arg) => {
   const res = await getRequest(`/v1.40/${arg.url}`)
+  return res
+})
+
+ipcMain.handle('api-request-post', async (event, arg) => {
+  const res = await postRequest(`/v1.40/${arg.url}`)
   return res
 })

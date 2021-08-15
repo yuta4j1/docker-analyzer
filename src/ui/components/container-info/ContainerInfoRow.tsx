@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { styled } from '@linaria/react'
 import ContainerStatusBadge from './ContainerStatusBadge'
+import SubMenuModal from './SubMenuModal'
 import { BsThreeDotsVertical } from 'react-icons/bs'
 import { DockerContainer, Port } from '../../../types/docker'
 import { ContainerStatus } from '../../../types/docker/container'
@@ -17,6 +18,7 @@ const RowWrapper = styled.div`
   margin: 0 1rem;
   border-bottom: 0.5px solid #4c4e52;
   cursor: pointer;
+  position: relative;
 `
 
 const LongItem = styled.div`
@@ -41,6 +43,15 @@ const ShortItem = styled.div`
   justify-content: center;
 `
 
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+`
+
 const containerPortString = (ports: Port[]): string => {
   if (ports.length > 0) {
     return `${ports[0].publicPort || '-'} / ${ports[0].privatePort || '-'}`
@@ -59,9 +70,11 @@ const convertStatusString = (statusStr: string): ContainerStatus => {
   return 'unknown'
 }
 
-const ContainerInfoRow: React.VFC<{ container: DockerContainer }> = ({
-  container,
-}) => {
+const ContainerInfoRow: React.VFC<{
+  container: DockerContainer
+  mutateContainerList: () => Promise<any>
+}> = ({ container, mutateContainerList }) => {
+  const [showMenuModal, setShowMenuModal] = useState(false)
   console.log('container info', container)
 
   return (
@@ -73,9 +86,19 @@ const ContainerInfoRow: React.VFC<{ container: DockerContainer }> = ({
       </Item>
       <Item>{containerPortString(container.ports)}</Item>
       <LongItem>{container.image}</LongItem>
-      <ShortItem>
+      <ShortItem onClick={() => setShowMenuModal(true)}>
         <BsThreeDotsVertical size={20} color={Colors.white} />
       </ShortItem>
+      {showMenuModal && (
+        <>
+          <Backdrop onClick={() => setShowMenuModal(false)} />
+          <SubMenuModal
+            containerId={container.id}
+            status={convertStatusString(container.status)}
+            mutateContainerList={mutateContainerList}
+          />
+        </>
+      )}
     </RowWrapper>
   )
 }

@@ -7,7 +7,8 @@ declare global {
         channel: string,
         func: (event: any, ...arg: any) => void
       ) => void
-      invoke: <T>(reqParam: { url: string }) => Promise<T>
+      get: <T>(reqParam: { url: string }) => Promise<T>
+      post: <T>(reqParam: { url: string }) => Promise<T>
       // https://github.com/frederiksen/angular-electron-boilerplate/blob/master/src/preload/preload.ts
       // https://www.electronjs.org/docs/all#ipcrenderersendtowebcontentsid-channel-args
       electronIpcSendTo: (
