@@ -2,14 +2,24 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import { css } from '@linaria/core'
 import Title from '../common/Title'
 import { Doughnut } from 'react-chartjs-2'
+import Spacer from '../common/Spacer'
 import type { DockerContainer } from '../../../types/docker/container'
 import type { ContainerStats } from '../../../types/docker/stats'
 
 const wrapper = css`
-  width: 18rem;
+  display: flex;
+`
+
+const chartContainer = css`
+  width: 16rem;
 `
 
 type ContainerMemoryUsage = {
+  containerName: string
+  usage: number
+}
+
+type ContainerCpuUsage = {
   containerName: string
   usage: number
 }
@@ -22,7 +32,6 @@ type ChartDatasets = {
 }
 
 type ChartData = {
-  labels: string[]
   datasets: ChartDatasets[]
 }
 
@@ -34,12 +43,26 @@ const computeMemoryUsage = (stats: ContainerStats): number => {
   return (usedMemory / availableMmeory) * 100
 }
 
+const computeCpuUsage = (stats: ContainerStats): number => {
+  const { cpuStats, precpuStats } = stats
+  const cpuDelta =
+    cpuStats.cpuUsage.totalUsage - precpuStats.cpuUsage.totalUsage
+  const systemCpuDelta = cpuStats.systemCpuUsage - precpuStats.systemCpuUsage
+  const numberCpus = cpuStats.cpuUsage.percpuUsage?.length
+  return (cpuDelta / systemCpuDelta) * numberCpus * 100.0
+}
+
 const Utilizations = () => {
   const [containerMemoryUsages, setContainerMemoryUsages] = useState<
     ContainerMemoryUsage[] | null
   >(null)
+  const [containerCpuUsages, setContainerCpuUsages] = useState<
+    ContainerCpuUsage[] | null
+  >(null)
 
-  const createChartData = (): ChartDatasets[] => {
+  const createChartData = (
+    containerUsages: ContainerMemoryUsage[] | ContainerCpuUsage[]
+  ): ChartDatasets[] => {
     if (!containerMemoryUsages) {
       return []
     }
@@ -47,14 +70,14 @@ const Utilizations = () => {
     let datas = []
     let backgroundColors = []
     let borderColors = []
-    for (let i in containerMemoryUsages) {
-      if (containerMemoryUsages[i].containerName === 'unused') {
+    for (let i in containerUsages) {
+      if (containerUsages[i].containerName === 'unused') {
         const UNUSED_COLOR = '#4a4a4a'
-        datas.push(containerMemoryUsages[i].usage)
+        datas.push(containerUsages[i].usage)
         backgroundColors.push(UNUSED_COLOR)
         borderColors.push(UNUSED_COLOR)
       } else {
-        datas.push(containerMemoryUsages[i].usage)
+        datas.push(containerUsages[i].usage)
         backgroundColors.push(COLORS[i])
         borderColors.push(COLORS[i])
       }
@@ -67,6 +90,8 @@ const Utilizations = () => {
       },
     ]
   }
+
+  // ラベル作成
   const createLabels = (): string[] => {
     if (!containerMemoryUsages) {
       return [] as string[]
@@ -74,19 +99,36 @@ const Utilizations = () => {
 
     return containerMemoryUsages.map((v) => v.containerName)
   }
-  const chartData = useMemo((): ChartData | null => {
-    const labels = createLabels()
-    const datasets = createChartData()
-    if (labels.length === 0 || datasets.length === 0) {
+
+  const memoryUsageChartData = useMemo((): ChartData | null => {
+    if (containerMemoryUsages === null) {
+      return null
+    }
+    const datasets = createChartData(containerMemoryUsages)
+    if (datasets.length === 0) {
       return null
     }
 
     return {
-      labels: createLabels(),
-      datasets: createChartData(),
+      datasets: datasets,
     }
   }, [containerMemoryUsages])
 
+  const cpuUsageChartData = useMemo((): ChartData | null => {
+    if (containerCpuUsages === null) {
+      return null
+    }
+    const datasets = createChartData(containerCpuUsages)
+    if (datasets.length === 0) {
+      return null
+    }
+
+    return {
+      datasets: datasets,
+    }
+  }, [containerCpuUsages])
+
+  // メモリ使用率の更新
   const updateContainerMemoryUsages = useCallback(
     (statsArr: ContainerStats[]): void => {
       let usedMemoryUsage = statsArr.map((v) => ({
@@ -108,6 +150,29 @@ const Utilizations = () => {
     [containerMemoryUsages]
   )
 
+  // CPU使用率の更新
+  const updateContainerCpuUsages = useCallback(
+    (statsArr: ContainerStats[]): void => {
+      let usedCpuUsage = statsArr.map((v) => ({
+        containerName: v.name.replace('/', ''),
+        usage: computeCpuUsage(v),
+      }))
+      console.log('usedCpuUsage', usedCpuUsage)
+      usedCpuUsage.sort((a, b) => {
+        return b.usage - a.usage
+      })
+      let usedUsage = usedCpuUsage.reduce((acc, curr) => {
+        return acc + curr.usage
+      }, 0)
+      const unusedUsage = 100 - usedUsage
+      setContainerCpuUsages([
+        ...usedCpuUsage,
+        { containerName: 'unused', usage: unusedUsage },
+      ])
+    },
+    [containerCpuUsages]
+  )
+
   const fetchDatas = async () => {
     const activeContainers = await window.dockerApi.get<DockerContainer[]>({
       url: 'containers/json',
@@ -121,6 +186,7 @@ const Utilizations = () => {
         )
       )
       updateContainerMemoryUsages(containerStats)
+      updateContainerCpuUsages(containerStats)
     }
   }
 
@@ -135,17 +201,34 @@ const Utilizations = () => {
 
   return (
     <div className={wrapper}>
-      <Title title="CPU Usage" />
-      {chartData !== null && (
-        <Doughnut
-          type={'doughnut'}
-          width={480}
-          height={480}
-          data={chartData}
-          options={{ animation: false }}
-          redraw
-        />
-      )}
+      <div className={chartContainer}>
+        <Title title="Memory Usage" />
+        {memoryUsageChartData !== null && (
+          <Doughnut
+            type={'doughnut'}
+            width={480}
+            height={480}
+            data={memoryUsageChartData}
+            options={{ animation: false }}
+            redraw
+          />
+        )}
+      </div>
+      {/** 横幅スペース開ける */}
+      <Spacer space={24} />
+      <div className={chartContainer}>
+        <Title title="CPU Usage" />
+        {cpuUsageChartData !== null && (
+          <Doughnut
+            type={'doughnut'}
+            width={480}
+            height={480}
+            data={cpuUsageChartData}
+            options={{ animation: false }}
+            redraw
+          />
+        )}
+      </div>
     </div>
   )
 }

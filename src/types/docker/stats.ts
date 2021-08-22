@@ -4,13 +4,15 @@ type PidsStats = {
 type BlkioStats = {}
 type StorageStats = {}
 type CpuUsage = {
+  percpuUsage: number[]
   totalUsage: number
   usageInKernelmode: number
   usageInUsermode: number
 }
 
 type CpuStats = {
-  cpu_usage: CpuUsage
+  cpuUsage: CpuUsage
+  systemCpuUsage: number
   throttlingData: ThrottlingData
 }
 
@@ -21,6 +23,7 @@ type ThrottlingData = {
 }
 type PrecpuStats = {
   cpuUsage: CpuUsage
+  systemCpuUsage: number
   throttlingData: ThrottlingData
 }
 type MemoryStats = {
