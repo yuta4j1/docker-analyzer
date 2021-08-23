@@ -3,4 +3,5 @@ export default {
   success: '#07BF63',
   base: '#141E2F',
   white: '#FFFFFF',
+  black: '#000000',
 }

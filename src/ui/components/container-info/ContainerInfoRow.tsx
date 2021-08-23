@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import { styled } from '@linaria/react'
 import ContainerStatusBadge from './ContainerStatusBadge'
 import SubMenuModal from './SubMenuModal'
+import ContainerDetailModal from '../container-detail-modal'
 import { BsThreeDotsVertical } from 'react-icons/bs'
-import { DockerContainer, Port } from '../../../types/docker'
+import { DockerContainer, Port } from '../../../types/docker/container'
 import { ContainerStatus } from '../../../types/docker/container'
 import Colors from '../../../consts/color'
 
@@ -61,40 +62,55 @@ const containerPortString = (ports: Port[]): string => {
 }
 
 const convertStatusString = (statusStr: string): ContainerStatus => {
-  if (statusStr.match(/Up/)) {
-    return 'up'
-  } else if (statusStr.match(/Exited/)) {
-    return 'exited'
+  console.log('statusStr', statusStr)
+  switch (statusStr) {
+    case 'created':
+    case 'restarting':
+    case 'running':
+    case 'removing':
+    case 'paused':
+    case 'exited':
+    case 'dead':
+      return statusStr
+    default:
+      return 'unknown'
   }
-
-  return 'unknown'
 }
 
 const ContainerInfoRow: React.VFC<{
   container: DockerContainer
   mutateContainerList: () => Promise<any>
 }> = ({ container, mutateContainerList }) => {
+  const [showDetailModal, setShowDetailModal] = useState(false)
   const [showMenuModal, setShowMenuModal] = useState(false)
   console.log('container info', container)
 
   return (
     <RowWrapper>
       <ShortItem />
-      <LongItem>{container.names[0].replace('/', '')}</LongItem>
+      <LongItem onClick={() => setShowDetailModal(true)}>
+        {container.names[0].replace('/', '')}
+      </LongItem>
       <Item>
-        <ContainerStatusBadge status={convertStatusString(container.status)} />
+        <ContainerStatusBadge status={convertStatusString(container.state)} />
       </Item>
       <Item>{containerPortString(container.ports)}</Item>
       <LongItem>{container.image}</LongItem>
       <ShortItem onClick={() => setShowMenuModal(true)}>
         <BsThreeDotsVertical size={20} color={Colors.white} />
       </ShortItem>
+      {showDetailModal && (
+        <ContainerDetailModal
+          container={container}
+          onClose={() => setShowDetailModal(false)}
+        />
+      )}
       {showMenuModal && (
         <>
           <Backdrop onClick={() => setShowMenuModal(false)} />
           <SubMenuModal
             containerId={container.id}
-            status={convertStatusString(container.status)}
+            status={convertStatusString(container.state)}
             mutateContainerList={mutateContainerList}
           />
         </>

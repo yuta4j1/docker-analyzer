@@ -95,7 +95,6 @@ const postRequest = async (url: string): Promise<any> => {
             }
             resolve({})
           } catch (err) {
-            console.log('kokoka????? chunk', chunk)
             console.error(err)
           }
         })

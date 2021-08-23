@@ -66,7 +66,7 @@ const SubMenuModal: React.VFC<{
           </MenuRow>
         </>
       )}
-      {status === 'up' && (
+      {status === 'running' && (
         <MenuRow
           onClick={() => {
             stopContainer(containerId)

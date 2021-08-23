@@ -4,7 +4,7 @@ import { ContainerStatus } from '../../../types/docker/container'
 
 const badgeColor = (status: ContainerStatus): string => {
   switch (status) {
-    case 'up':
+    case 'running':
       return '#07BF63'
     case 'exited':
       return '#7C7C7C'
