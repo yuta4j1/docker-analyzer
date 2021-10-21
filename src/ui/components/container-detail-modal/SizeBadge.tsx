@@ -22,13 +22,24 @@ const BadgeValue = styled.div`
   padding: 2px 12px;
 `
 
-const SizeBadge: React.VFC<{}> = ({}) => {
+// コンテナのサイズを適切な単位に変換する
+const toAppropriateUtil = (byte: number): string => {
+  const kByte = Math.floor(byte / 1024)
+  if (kByte > 1024) {
+    const mbyte = Math.floor(kByte / 1024)
+    return `${mbyte}M`
+  } else {
+    return `${kByte}K`
+  }
+}
+
+const SizeBadge: React.VFC<{ byteSize: number }> = ({ byteSize }) => {
   return (
     <BadgeWrapper>
       <BadgeTitle>
         <span>Size</span>
       </BadgeTitle>
-      <BadgeValue>12Kbyte</BadgeValue>
+      <BadgeValue>{`${toAppropriateUtil(byteSize)}byte`}</BadgeValue>
     </BadgeWrapper>
   )
 }

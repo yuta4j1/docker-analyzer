@@ -1,7 +1,7 @@
 import React, { useState, useLayoutEffect, useRef } from 'react'
 import { css } from '@linaria/core'
 import { styled } from '@linaria/react'
-import { MdLabelOutline } from 'react-icons/md'
+// import { MdLabelOutline } from 'react-icons/md'
 import { BiX } from 'react-icons/bi'
 import type {
   DockerContainer,
@@ -9,7 +9,7 @@ import type {
 } from '../../../types/docker/container'
 import Colors from '../../../consts/color'
 import ContainerStatusBadge from '../container-info/ContainerStatusBadge'
-// import SizeBadge from './SizeBadge'
+import SizeBadge from './SizeBadge'
 
 const Backdrop = styled.div`
   position: fixed;
@@ -76,8 +76,11 @@ const LabelSection = styled.div`
   margin: 1rem 0;
 `
 
+const SizeBadgeWrapper = styled.div`
+  margin: 1rem 0 1.2rem 0;
+`
+
 const convertStatusString = (statusStr: string): ContainerStatus => {
-  console.log('statusStr', statusStr)
   switch (statusStr) {
     case 'created':
     case 'restarting':
@@ -127,10 +130,12 @@ const ContainerDetailModal: React.VFC<{
             />
           </div>
         </ContainerTitleSection>
-        {/* <SizeBadge /> */}
-        <LabelSection>
+        <SizeBadgeWrapper>
+          <SizeBadge byteSize={container.sizeRootFs} />
+        </SizeBadgeWrapper>
+        {/* <LabelSection>
           <MdLabelOutline size={12} />
-        </LabelSection>
+        </LabelSection> */}
         <CommandSection>
           <span className={commandText}>{`$ ${container.command}`}</span>
         </CommandSection>
