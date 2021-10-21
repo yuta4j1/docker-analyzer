@@ -4,7 +4,7 @@ import type { DockerContainer } from '../types/docker/container'
 export function useContainerList() {
   const { data, error } = useSWR('/containers', async () => {
     return window.dockerApi.get<DockerContainer[]>({
-      url: 'containers/json?all=1',
+      url: `containers/json?all=1&size=1`,
     })
   })
 

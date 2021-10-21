@@ -56,6 +56,16 @@ export type DockerContainer = {
   hostConfig: HostConfig
   networkSettings: NetworkSettings
   mounts: Mount[]
+  sizeRw: number
+  sizeRootFs: number
 }
 
-export type ContainerStatus = 'up' | 'exited' | 'unknown'
+export type ContainerStatus =
+  | 'created'
+  | 'restarting'
+  | 'running'
+  | 'removing'
+  | 'paused'
+  | 'exited'
+  | 'dead'
+  | 'unknown'
